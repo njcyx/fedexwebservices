@@ -1,6 +1,6 @@
 # FedEx Web Service for Zen Cart
 
-(Under Development, for personal purposes only)
+(Under development, for personal purposes only)
 
 This repository is the home of the FedEx Shipping Module, supporting Zen Cart 1.58 with PHP 8.0. This module is based on the Numinix plug-in, v1.8.1 
 
