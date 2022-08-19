@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width">
+  <title>FedEx Web Services Shipping</title>
+  <link href="css/stylesheet.css" rel="stylesheet" type="text/css" />
+  <link href="css/sh_style.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
+  <script type="text/javascript" src="js/sh_main.min.js"></script>
+  <script type="text/javascript" src="js/sh_html.min.js"></script>
+  <script type="text/javascript" src="js/sh_php.min.js"></script>
+  <script type="text/javascript" src="js/sh_javascript.min.js"></script>
+  <script type="text/javascript" src="js/sh_sql.min.js"></script>
+  <script type="text/javascript" src="js/sh_css.min.js"></script>
+  <script type="text/javascript" src="js/documentation.js"></script>
+  <script src="//use.typekit.net/uhl4ygc.js"></script>
+  <script>try{Typekit.load();}catch(e){}</script>
+</head>
+<body>
+  <!--[if lt IE 8]> <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative; margin: auto; text-align: center;'> <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode"><img src="http://www.theie6countdown.com/images/banners/warning_bar_0000_us.jpg" border="0" height="42" width="820" alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today." /></a></div> <![endif]--> 
+<div id="wrapper" class="tk-museo-slab">
+  <!--BOF Header-->
+  <div id="headerContainer">
+    <div id="mainMenu" class="headerWrapper">
+
+      <div class="logoWrapper">
+        <img src="images/logo.png" alt="Numinix.com" title="Numinix" id="logo" class="headerLogo" />
+      </div>
+
+    <!--BOF Links-->
+    <div class="contentMenu">
+      <ul>
+        <li><a href="#" id="btnInstallation" class="btn" title="Installation">Installation</a></li>
+        <li><a href="#" id="btnInstallationTips" class="btn" title="Installation Tips">Tips</a></li>
+        <li><a href="#" id="btnUninstall" class="btn" title="Uninstall">Uninstall</a></li>
+        <li><a href="#" id="btnAbout" class="btn" title="About">About</a></li>
+        <li><a href="#" id="btnLicense" class="btn" title="License">License</a></li>
+        <li><a href="#" id="btnDisclaimer" class="btn" title="Disclaimer">Disclaimer</a></li>
+        <li><a href="#" id="btnHelp" class="btn" title="Help">Help</a></li>
+      </ul>
+    </div>
+    <!--EOF Links-->
+
+  </div>
+</div>
+  <div id="headerTitle">
+   <h1 class="clearBoth">FedEx Web Services Shipping</h1>
+  </div>
+        <br class="clearBoth" />
+  <!--EOF Header-->
+  <div class="contentWrapper">
+
+    <!--BOF INSTALLATION-->
+      <div class="bodyHeaderContainer" id="Installation" >
+        <div class="bodyHeader" id="green">
+          <span class="bodyHeaderTxt">Installation</span>
+        </div>
+        <div class="bodyWrapper">
+          <ol>
+            <li>Ensure that PHP is compiled with SOAP over SSL.  Once enabled, you will be able to find "SOAP" in ADMIN > VERSION.  Speak to your hosting company if unsure.</li>
+            <li>Upload all files in this package while maintaining the directory structure</li>
+            <li>Go to ADMIN > MODULES > SHIPPING > FEDEX WEB SERVICES and configure the module (see tips section)</li>
+            <li>When adding a meter number, ensure that the meter number has been generated for the Web Services API by requesting a production account at <a href="http://www.fedex.com/us/developer/" target="_blank">http://www.fedex.com/us/developer/</a> (Note: meter numbers from the old API will not be valid).</li>
+          </ol>
+        </div>
+      </div>
+      <!--EOF INSTALLATION-->
+
+      <!--BOF TIPS-->
+      <div class="bodyHeaderContainer" id="InstallationTips">
+        <div class="bodyHeader" id="blue">
+          <span class="bodyHeaderTxt">Tips</span>
+         
+        </div>
+        <div class="bodyWrapper">
+          <ul>
+          <li>Do not replace the WSDL in the package with the one provided by FedEx.  This mod is written specifically for the Rate Services v10 WSDL.</li>
+            <li>You do not need to replace the production key and password with the ones provided by FedEx.  The mod comes hardcoded with our already certified key and password in includes/modules/shipping/fedexwebservices.php</li>
+        </div>
+      </div>
+      <!--EOF TIPS-->
+
+      <!--BOF UNINSTALL-->
+      <div class="bodyHeaderContainer" id="Uninstall">
+        <div class="bodyHeader">
+          <span class="bodyHeaderTxt">Uninstall</span>
+          
+        </div>
+        <div class="bodyWrapper">
+          <ol>
+            <li>Go to ADMIN > MODULES > SHIPPING > FEDEX WEB SERVICES and click REMOVE</li>
+            <li>Delete all uploaded files from your store</li>
+          </ol>
+        </div>
+      </div>
+      <!--EOF UNINSTALL-->
+
+    <!--BOF About Us-->
+    <div class="bodyHeaderContainer" id="About">
+      <div class="numHeader bodyHeader">
+        <span class="bodyHeaderTxt">About the Plugin</span>
+      </div>
+      <div class="bodyWrapper">
+        <div class="spacer">
+         <div class="bodyRow"><span class="bodyStrong">Title:</span><span class="content">FedEx Web Services Shipping</span></div>
+        <div class="bodyRow"><span class="bodyStrong">Author:</span><span class="content">Numinix</span></div>
+        <div class="bodyRow"><span class="bodyStrong">Description:</span><span class="content">Adds the ability to provide FedEx rates quotes to your customers via the FedEx Web Services API.</span></div>
+        <div class="bodyRow"><span class="bodyStrong">Installation Level:</span><span class="content">Easy</span></div>
+        <div class="bodyRow"><span class="bodyStrong">Installation Time:</span><span class="content">~ 5 minutes</span></div>
+        <div class="bodyRow"><span class="bodyStrong">Author Notes:</span><span class="content">Zen Cart is the copyright of the Zen Cart Development Team.</span></div>
+        <div class="bodyRow"><span class="bodyStrong">Version:</span><span class="content">1.8.1</span></div>
+        </div>
+      </div>
+    </div>
+    <!--EOF About Us-->
+
+    <!--BOF License-->
+    <div class="bodyHeaderContainer" id="License">
+      <div class="numHeader bodyHeader">
+        <span class="bodyHeaderTxt">License</span>
+      </div>
+      <div class="bodyWrapper">
+        <div class="spacer">
+          <iframe src="../../license.txt" width="100%" height="500px" scrolling="scroll" />    
+        </div>
+      </div>
+    </div>
+    <!--EOF License-->
+
+    <!--BOF Disclalimer-->
+    <div class="bodyHeaderContainer" id="Disclaimer">
+      <div class="numHeader bodyHeader">
+        <span class="bodyHeaderTxt">Disclaimer</span>
+      </div>
+      <div class="bodyWrapper">
+        <div class="spacer">
+          <p>This module is installed at your own risk.  If you are unsure of how to complete the installation procedure, please view our help section for additional information.  Numinix Web Development LTD takes no responsibility for problems related to the installation of this module.</p>
+        </div>
+      </div>
+    </div>
+    <!--EOF Disclaimer-->
+      
+    <!--BOF HELP-->
+    <div class="bodyHeaderContainer" id="Help">
+      <div class="bodyHeader">
+        <span class="bodyHeaderTxt">Help</span>
+      </div>
+      <div class="bodyWrapper">
+        <div class="spacer">
+          <div class="bodyRow"><span class="bodyStrong">Download Page:</span><span class="content"><a href="https://www.numinix.com/downloads/zen-cart-modules/shipping/fedex-web-services-shipping" target="_blank">https://www.numinix.com/downloads/zen-cart-modules/shipping/fedex-web-services-shipping</a></span></div>
+          <div class="bodyRow"><span class="bodyStrong">Contact Us:</span><span class="content"><a href="http://www.numinix.com/support/" target="_blank">http://www.numinix.com/support/</a></span></div>
+        </div>
+      </div>
+    </div>
+    <!--EOF HELP-->
+  </div>
+  <div id="footerContainer">&copy; 2015 Numinix Web Development</div>
+</div>
+</body>
+</html>
