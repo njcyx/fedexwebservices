@@ -1,4 +1,4 @@
-<?php
+<?php //If there is no way to clean the warning, use error_reporting(0);
 class fedexwebservices {
  var $code, $title, $description, $icon, $sort_order, $enabled, $tax_class, $fedex_key, $fedex_pwd, $fedex_act_num, $fedex_meter_num, $country, $total_weight;
 
@@ -152,16 +152,17 @@ class fedexwebservices {
     }
 
     // customer details
-    $street_address = $order->delivery['street_address'];
-    $street_address2 = $order->delivery['suburb'];
-    $city = $order->delivery['city'];
-    if(isset($order->delivery['country']['id'])){
+    global $zone_id;
+    $street_address = $order->delivery['street_address'] ?? null;
+    $street_address2 = $order->delivery['suburb'] ?? null;
+    $city = $order->delivery['city'] ?? null;
+    if(isset($order->delivery['country']['id']) && $zone_id){
         $state = zen_get_zone_code($order->delivery['country']['id'], $order->delivery['zone_id'], '');
-    }else{
+    }else if ($zone_id){
         $countryId = $db->Execute("SELECT countries_id FROM ".TABLE_COUNTRIES." WHERE countries_name = '".$order->delivery['country']."'");
         $state = zen_get_zone_code($countryId->fields['countries_id'], $order->delivery['zone_id'], '');
     }
-    if ($state == "QC") $state = "PQ";
+    if (($state ?? null) == "QC") $state = "PQ";
     $postcode = str_replace(array(' ', '-'), '', $order->delivery['postcode']);
     if(isset($order->delivery['country']['iso_code_2'])) {
         $country_id = $order->delivery['country']['iso_code_2'];
@@ -240,8 +241,8 @@ class fedexwebservices {
             'StreetLines' => array(utf8_encode($street_address), utf8_encode($street_address2)),
             'PostalCode' => $postcode,
             'City' => $city,
-            'StateOrProvinceCode' => $state,
-            'CompanyName' => $order->delivery['company'],
+            'StateOrProvinceCode' => ($state ?? null),
+            'CompanyName' => ($order->delivery['company'] ?? null),
             'CountryCode' => $country_id
           )
         )
@@ -257,7 +258,7 @@ class fedexwebservices {
         die();
         */
         if ($av_response->HighestSeverity == 'SUCCESS') {
-          if ($av_response->AddressResults->ProposedAddressDetails->ResidentialStatus == 'BUSINESS' || $av_response->AddressResults->Classification == 'BUSINESS') {
+          if (($av_response->AddressResults->ProposedAddressDetails->ResidentialStatus ?? null) == 'BUSINESS' || $av_response->AddressResults->Classification == 'BUSINESS') {
             $residential_address = false;
           } // already set to true so no need for else statement
         }
@@ -281,7 +282,7 @@ class fedexwebservices {
                                                        'CountryCode' => $country_id,
                                                        'Residential' => $residential_address)); //customer county code
     if (in_array($country_id, array('US', 'CA'))) {
-      $request['RequestedShipment']['Recipient']['StateOrProvinceCode'] = $state;
+      $request['RequestedShipment']['Recipient']['StateOrProvinceCode'] = ($state ?? null);
     }
     //print_r($request['RequestedShipment']['Recipient'])  ;
     //exit;
@@ -623,8 +624,8 @@ class fedexwebservices {
 
   }
 
-  function do_request($method = '', $request, $client) {
-  global $db, $shipping_weight, $shipping_num_boxes, $cart, $order, $all_products_ship_free;
+  function do_request($method, $request, $client) {
+  global $db, $shipping_weight, $shipping_num_boxes, $cart, $order, $all_products_ship_free, $show_box_weight;
     try {
       $response = $client->getRates($request);
     /*
@@ -640,7 +641,7 @@ class fedexwebservices {
         error_log('['. strftime("%Y-%m-%d %H:%M:%S") .'] '. var_export($response, true), 3, DIR_FS_LOGS . '/fedexwebservices-responses-' . $log_time_stamp . '.log');
       }
 
-      if ($response->HighestSeverity != 'FAILURE' && $response->HighestSeverity != 'ERROR' && is_array($response->RateReplyDetails) || is_object($response->RateReplyDetails)) {
+      if ($response->HighestSeverity != 'FAILURE' && $response->HighestSeverity != 'ERROR' && is_array($response->RateReplyDetails ?? null) || is_object($response->RateReplyDetails ?? null)) {
         if (is_object($response->RateReplyDetails)) {
           $response->RateReplyDetails = get_object_vars($response->RateReplyDetails);
         }
@@ -670,7 +671,7 @@ class fedexwebservices {
         $methods = array();
         foreach ($response->RateReplyDetails as $rateReply) {
           // bof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
-          if (array_key_exists($rateReply->ServiceType, $this->types) && ($method == '' || str_replace('_', '', $rateReply->ServiceType) == $method || str_replace('_', '', $rateReply->ServiceType.'_'.$rateReply->AppliedOptions) == $method)) {
+        if (array_key_exists($rateReply->ServiceType, $this->types) && ($method == '' || str_replace('_', '', $rateReply->ServiceType) == $method || str_replace('_', '', $rateReply->ServiceType.'_'.($rateReply->AppliedOptions ?? null)) == $method)) {
           // eof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
             $showAccountRates = true;
             if(MODULE_SHIPPING_FEDEX_WEB_SERVICES_RATES=='LIST') {
@@ -757,6 +758,7 @@ class fedexwebservices {
                         $formatted_estimated_delivery_date = " " . "(" . "ETA: " . $day_of_week . ' ' . $est_date->format('M d') . ")";
                     }
                 }
+                global $formatted_estimated_delivery_date;
                 $quote_title = ucwords(strtolower(str_replace('_', ' ', $rateReply->ServiceType))) . $formatted_estimated_delivery_date;
               }
 
