@@ -1,4 +1,4 @@
-<?php //modified by Kane
+<?php //modified for zc 1.58
 $define = [
 	'MODULE_SHIPPING_FEDEX_WEB_SERVICES_TEXT_TITLE' => 'FedEx',
 	'MODULE_SHIPPING_FEDEX_WEB_SERVICES_TEXT_DESCRIPTION' => '<h2>FedEx Web Services</h2><p>You will need to have registered an account with FedEx and proper approval from FedEx identity to use this module. Please see the README.TXT file for other requirements.</p>',
