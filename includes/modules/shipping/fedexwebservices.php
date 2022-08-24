@@ -163,7 +163,7 @@ class fedexwebservices {
         $state = zen_get_zone_code($countryId->fields['countries_id'], $order->delivery['zone_id'], '');
     }
     if (($state ?? null) == "QC") $state = "PQ";
-    $postcode = str_replace(array(' ', '-'), '', $order->delivery['postcode']);
+    $postcode = str_replace(array(' ', '-'), '', $order->delivery['postcode'] ?? null);
     if(isset($order->delivery['country']['iso_code_2'])) {
         $country_id = $order->delivery['country']['iso_code_2'];
     }
