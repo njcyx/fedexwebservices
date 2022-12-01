@@ -1,4 +1,4 @@
-Numinix updated this plug-in on Nov 29, 2022 (v1.9.0), so this project is "retired". Please use the plug-in from Numinix directly. 
+12/1/2022 update: Numinix updated this plug-in on Nov 29, 2022 (v1.9.0), so this project is "retired". Please use the plug-in from Numinix directly. 
 
 https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
 
