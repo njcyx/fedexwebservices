@@ -6,8 +6,6 @@ This module is based on the Numinix FedEx Shipping Module, v1.9.0 with some modi
 
 Original plug-in download Link: https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
 
-https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
-
 Mod Changelog
 1) Resolve a variety of warning/error caused by php 8.0 or higher 
 2) (Temp solution) Resolve the bug which will not display FedEx intl priority. This mod uses RateService_v20.wsdl instead of RateService_v31.wsdl
