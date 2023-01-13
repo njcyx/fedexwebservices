@@ -1,3 +1,5 @@
+IMPORTANT: please do not use! Somehow I cannot get shipping quote now. I needs some time to figure it out....>_<
+
 # FedEx Web Service for Zen Cart Mod
 
 (Under development, for personal purposes only)
