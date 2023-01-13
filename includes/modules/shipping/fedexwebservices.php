@@ -1,4 +1,9 @@
-<?php //If there is no way to clean the warning, use error_reporting(0);
+<?php
+// Modified based on Numinix v1.9.0 https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
+// Mode log 1)Resolve the warning error caused by php 8.0 or higher 
+// 2) (Temp solution) Resolve the bug which will not display FedEx intl priority by using RateService_v20.wsdl instead of RateService_v31.wsdl
+// 3) Resolve occasional warning, Invalid argument supplied for foreach()
+//
 class fedexwebservices {
  var $code, $title, $description, $icon, $sort_order, $enabled, $tax_class, $fedex_key, $fedex_pwd, $fedex_act_num, $fedex_meter_num, $country, $total_weight;
 
@@ -152,18 +157,17 @@ class fedexwebservices {
     }
 
     // customer details
-    global $zone_id;
     $street_address = $order->delivery['street_address'] ?? null;
     $street_address2 = $order->delivery['suburb'] ?? null;
     $city = $order->delivery['city'] ?? null;
-    if(isset($order->delivery['country']['id']) && $zone_id){
+    if(isset($order->delivery['country']['id'])){
         $state = zen_get_zone_code($order->delivery['country']['id'], $order->delivery['zone_id'], '');
-    }else if ($zone_id){
+    }else{
         $countryId = $db->Execute("SELECT countries_id FROM ".TABLE_COUNTRIES." WHERE countries_name = '".$order->delivery['country']."'");
         $state = zen_get_zone_code($countryId->fields['countries_id'], $order->delivery['zone_id'], '');
     }
-    if (($state ?? null) == "QC") $state = "PQ";
-    $postcode = str_replace(array(' ', '-'), '', $order->delivery['postcode'] ?? null);
+    if ($state == "QC") $state = "PQ";
+    $postcode = str_replace(array(' ', '-'), '', $order->delivery['postcode']);
     if(isset($order->delivery['country']['iso_code_2'])) {
         $country_id = $order->delivery['country']['iso_code_2'];
     }
@@ -175,6 +179,8 @@ class fedexwebservices {
     $this->_setInsuranceValue($totals);
     $request = $this->build_request_common_elements();
 
+   /*    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request using PHP ***');
+    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '31', 'Intermediate' => '0', 'Minor' => '0');*/
     $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request v20 using PHP ***');
     $request['Version'] = array('ServiceId' => 'crs', 'Major' => '20', 'Intermediate' => '0', 'Minor' => '0');
     $request['ReturnTransitAndCommit'] = true;
@@ -241,7 +247,7 @@ class fedexwebservices {
             'StreetLines' => array(utf8_encode($street_address), utf8_encode($street_address2)),
             'PostalCode' => $postcode,
             'City' => $city,
-            'StateOrProvinceCode' => ($state ?? null),
+            'StateOrProvinceCode' => $state,
             'CompanyName' => ($order->delivery['company'] ?? null),
             'CountryCode' => $country_id
           )
@@ -282,7 +288,7 @@ class fedexwebservices {
                                                        'CountryCode' => $country_id,
                                                        'Residential' => $residential_address)); //customer county code
     if (in_array($country_id, array('US', 'CA'))) {
-      $request['RequestedShipment']['Recipient']['StateOrProvinceCode'] = ($state ?? null);
+      $request['RequestedShipment']['Recipient']['StateOrProvinceCode'] = $state;
     }
     //print_r($request['RequestedShipment']['Recipient'])  ;
     //exit;
@@ -526,6 +532,7 @@ class fedexwebservices {
       //$request['Version'] = array('ServiceId' => 'crs', 'Major' => '7', 'Intermediate' => '0', 'Minor' => '0');
       //$path_to_wsdl = DIR_WS_INCLUDES . "wsdl/RateService_v7_test.wsdl";
     //} else {
+   // $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v31.wsdl';
     $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v20.wsdl';
     //}
     ini_set("soap.wsdl_cache_enabled", "0");
@@ -624,7 +631,7 @@ class fedexwebservices {
 
   }
 
-  function do_request($method, $request, $client) {
+  function do_request($method = '', $request = '', $client = '') {
   global $db, $shipping_weight, $shipping_num_boxes, $cart, $order, $all_products_ship_free, $show_box_weight;
     try {
       $response = $client->getRates($request);
@@ -641,7 +648,7 @@ class fedexwebservices {
         error_log('['. strftime("%Y-%m-%d %H:%M:%S") .'] '. var_export($response, true), 3, DIR_FS_LOGS . '/fedexwebservices-responses-' . $log_time_stamp . '.log');
       }
 
-      if ($response->HighestSeverity != 'FAILURE' && $response->HighestSeverity != 'ERROR' && is_array($response->RateReplyDetails ?? null) || is_object($response->RateReplyDetails ?? null)) {
+      if ($response->HighestSeverity != 'FAILURE' && $response->HighestSeverity != 'ERROR' && is_array($response->RateReplyDetails) || is_object($response->RateReplyDetails)) {
         if (is_object($response->RateReplyDetails)) {
           $response->RateReplyDetails = get_object_vars($response->RateReplyDetails);
         }
@@ -671,7 +678,7 @@ class fedexwebservices {
         $methods = array();
         foreach ($response->RateReplyDetails as $rateReply) {
           // bof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
-        if (array_key_exists($rateReply->ServiceType, $this->types) && ($method == '' || str_replace('_', '', $rateReply->ServiceType) == $method || str_replace('_', '', $rateReply->ServiceType.'_'.($rateReply->AppliedOptions ?? null)) == $method)) {
+          if (array_key_exists($rateReply->ServiceType, $this->types) && ($method == '' || str_replace('_', '', $rateReply->ServiceType) == $method || str_replace('_', '', $rateReply->ServiceType.'_'.$rateReply->AppliedOptions) == $method)) {
           // eof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
             $showAccountRates = true;
             if(MODULE_SHIPPING_FEDEX_WEB_SERVICES_RATES=='LIST') {
@@ -766,7 +773,8 @@ class fedexwebservices {
               $saturday = false;
               if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_SATURDAY == 'true') {
                 foreach($rateReply->RatedShipmentDetails as $ShipmentRateDetail) {
-                    foreach($ShipmentRateDetail->ShipmentRateDetail->Surcharges as $surcharge) {
+               //     foreach($ShipmentRateDetail->ShipmentRateDetail->Surcharges as $surcharge) {
+                foreach((array)($ShipmentRateDetail->ShipmentRateDetail->Surcharges) as $surcharge) {
                         if ($surcharge->SurchargeType == 'SATURDAY_DELIVERY') $saturday = true;
                     }
                 }
@@ -979,6 +987,12 @@ class fedexwebservices {
           case '1.7.8':
             $db->Execute("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '1.7.9', set_function = 'zen_cfg_select_option(array(\'1.7.9\'),' WHERE configuration_key = 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_VERSION' LIMIT 1;");
           case '1.7.9':
+            $db->Execute("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '1.8.0', set_function = 'zen_cfg_select_option(array(\'1.8.0\'),' WHERE configuration_key = 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_VERSION' LIMIT 1;");
+          case '1.8.0':
+            $db->Execute("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '1.8.1', set_function = 'zen_cfg_select_option(array(\'1.8.1\'),' WHERE configuration_key = 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_VERSION' LIMIT 1;");
+          case '1.8.1':
+            $db->Execute("UPDATE " . TABLE_CONFIGURATION . " SET configuration_value = '1.9.0', set_function = 'zen_cfg_select_option(array(\'1.9.0\'),' WHERE configuration_key = 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_VERSION' LIMIT 1;");
+          case '1.9.0':
             break; // this break should only appear on the last case
         }
       }
@@ -989,7 +1003,7 @@ class fedexwebservices {
   function install() {
     global $db;
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Enable FedEx Web Services','MODULE_SHIPPING_FEDEX_WEB_SERVICES_STATUS','true','Do you want to offer FedEx shipping?','6','0','zen_cfg_select_option(array(\'true\',\'false\'),',now())");
-    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Version Installed', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_VERSION', '1.7.3', '', '6', '0', set_function = 'zen_cfg_select_option(array(\'1.6.4\'),', now())");
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Version Installed', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_VERSION', '1.9.0', '', '6', '0', set_function = 'zen_cfg_select_option(array(\'1.9.0\'),', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('FedEx Account Number', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_ACT_NUM', '', 'Enter FedEx Account Number', '6', '3', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) values ('FedEx Meter Number', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_METER_NUM', '', 'Enter FedEx Meter Number (You can get one at <a href=\"http://www.fedex.com/us/developer/\" target=\"_blank\">http://www.fedex.com/us/developer/</a>)', '6', '4', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Enable Address Validation','MODULE_SHIPPING_FEDEX_WEB_SERVICES_ADDRESS_VALIDATION','false','Would you like to use the FedEx Address Validation service to determine if an address is residential or commercial?','6','9','zen_cfg_select_option(array(\'true\',\'false\'),',now())");
