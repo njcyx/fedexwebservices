@@ -1,18 +1,17 @@
-Dec 1, 2022 update: Numinix updated this plug-in on Nov 29, 2022 (v1.9.0), so this project is "retired". Please use the plug-in from Numinix directly. 
-
-https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
-
-=========
-
 # FedEx Web Service for Zen Cart Mod
 
 (Under development, for personal purposes only)
 
-This module is based on the Numinix FedEx Shipping Module, v1.8.1 with some modifications to support Zen Cart 1.58 & PHP 8.0. 
+This module is based on the Numinix FedEx Shipping Module, v1.9.0 with some modifications to support Zen Cart PHP 8.0 or higher. 
 
-Original plug-in download Link: https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping  
+Original plug-in download Link: https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
 
-The original v1.8.1 plug-in is not compatible with PHP 8.0 and it will throw many errors and warnings. This modified plug-in seems to fix this issue. 
+https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
+
+Mod Changelog
+1) Resolve a variety of warning/error caused by php 8.0 or higher 
+2) (Temp solution) Resolve the bug which will not display FedEx intl priority. This mod uses RateService_v20.wsdl instead of RateService_v31.wsdl
+3) Resolve occasional warning, Invalid argument supplied for foreach()
 
 Only two files are changed.
 
