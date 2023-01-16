@@ -4,7 +4,6 @@
 // 2) (Temp solution) Resolve the bug which will not display FedEx intl priority by using RateService_v20.wsdl instead of RateService_v31.wsdl
 // 3) Resolve occasional warning, Invalid argument supplied for foreach()
 //
-<?php
 class fedexwebservices {
  var $code, $title, $description, $icon, $sort_order, $enabled, $tax_class, $fedex_key, $fedex_pwd, $fedex_act_num, $fedex_meter_num, $country, $total_weight;
 
@@ -180,8 +179,10 @@ class fedexwebservices {
     $this->_setInsuranceValue($totals);
     $request = $this->build_request_common_elements();
 
-    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request using PHP ***');
-    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '31', 'Intermediate' => '0', 'Minor' => '0');
+   /*  $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request using PHP ***');
+    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '31', 'Intermediate' => '0', 'Minor' => '0'); */
+    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request v20 using PHP ***');
+    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '20', 'Intermediate' => '0', 'Minor' => '0');
     $request['ReturnTransitAndCommit'] = true;
     $request['RequestedShipment']['DropoffType'] = $this->_setDropOff(); // valid values REGULAR_PICKUP, REQUEST_COURIER, ...
     $request['RequestedShipment']['ShipTimestamp'] = date('c');
@@ -263,7 +264,12 @@ class fedexwebservices {
         die();
         */
         if ($av_response->HighestSeverity == 'SUCCESS') {
-          if (($av_response->AddressResults->ProposedAddressDetails->ResidentialStatus ?? null) == 'BUSINESS' || $av_response->AddressResults->Classification == 'BUSINESS') {
+    //      if (($av_response->AddressResults->ProposedAddressDetails->ResidentialStatus ?? null) == 'BUSINESS' || $av_response->AddressResults->Classification == 'BUSINESS') {
+          $AddressResults = $av_response->AddressResults;
+          $ProposedAddressDetails = $AddressResults->ProposedAddressDetails ?? null;
+          $ResidentialStatus = $ProposedAddressDetails->ResidentialStatus ?? null;
+          $Classification = $AddressResults->Classification;
+          if ($ResidentialStatus == 'BUSINESS' || $Classification == 'BUSINESS') {
             $residential_address = false;
           } // already set to true so no need for else statement
         }
@@ -531,7 +537,8 @@ class fedexwebservices {
       //$request['Version'] = array('ServiceId' => 'crs', 'Major' => '7', 'Intermediate' => '0', 'Minor' => '0');
       //$path_to_wsdl = DIR_WS_INCLUDES . "wsdl/RateService_v7_test.wsdl";
     //} else {
-    $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v31.wsdl';
+  //  $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v31.wsdl';
+    $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v20.wsdl';
     //}
     ini_set("soap.wsdl_cache_enabled", "0");
     //IF SOAP COMPILED WITH PEAR UNCOMMENT BELOW
@@ -646,9 +653,10 @@ class fedexwebservices {
         error_log('['. strftime("%Y-%m-%d %H:%M:%S") .'] '. var_export($response, true), 3, DIR_FS_LOGS . '/fedexwebservices-responses-' . $log_time_stamp . '.log');
       }
 
-      if ($response->HighestSeverity != 'FAILURE' && $response->HighestSeverity != 'ERROR' && is_array($response->RateReplyDetails) || is_object($response->RateReplyDetails)) {
-        if (is_object($response->RateReplyDetails)) {
-          $response->RateReplyDetails = get_object_vars($response->RateReplyDetails);
+      $RateReplyDetails = $response->RateReplyDetails ?? null;
+      if ($response->HighestSeverity != 'FAILURE' && $response->HighestSeverity != 'ERROR' && is_array($RateReplyDetails) || is_object($RateReplyDetails)) {
+        if (is_object($RateReplyDetails)) {
+          $RateReplyDetails = get_object_vars($RateReplyDetails);
         }
         //echo '<pre>';
        // print_r($response->RateReplyDetails);
@@ -674,9 +682,10 @@ class fedexwebservices {
                               'module' => $this->title . $show_box_weight,
                               'info' => $this->info());
         $methods = array();
-        foreach ($response->RateReplyDetails as $rateReply) {
+        foreach ($RateReplyDetails as $rateReply) {
+          $AppliedOptions = $rateReply->AppliedOptions ?? null; 
           // bof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
-          if (array_key_exists($rateReply->ServiceType, $this->types) && ($method == '' || str_replace('_', '', $rateReply->ServiceType) == $method || str_replace('_', '', $rateReply->ServiceType.'_'.$rateReply->AppliedOptions) == $method)) {
+          if (array_key_exists($rateReply->ServiceType, $this->types) && ($method == '' || str_replace('_', '', $rateReply->ServiceType) == $method || str_replace('_', '', $rateReply->ServiceType.'_'.$AppliedOptions) == $method)) {
           // eof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
             $showAccountRates = true;
             if(MODULE_SHIPPING_FEDEX_WEB_SERVICES_RATES=='LIST') {
