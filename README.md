@@ -4,7 +4,7 @@ Issue resolved. Now this plug-in is working now (latest version)
 
 (Under development, for personal purposes only)
 
-This module is based on the Numinix FedEx Shipping Module, v1.9.0 with some modifications to support Zen Cart 1.5.8 and PHP 8.0 or higher. 
+This module is based on the Numinix FedEx Shipping Module, v1.9.0 with some modifications to support Zen Cart 1.5.8 and PHP 8.0. PHP 8.1 is not tested so probably it still works. 
 
 Original plug-in download Link: https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
 
