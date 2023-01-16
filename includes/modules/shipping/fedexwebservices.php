@@ -780,7 +780,8 @@ class fedexwebservices {
               $saturday = false;
               if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_SATURDAY == 'true') {
                 foreach($rateReply->RatedShipmentDetails as $ShipmentRateDetail) {
-                    foreach($ShipmentRateDetail->ShipmentRateDetail->Surcharges as $surcharge) {
+              //      foreach($ShipmentRateDetail->ShipmentRateDetail->Surcharges as $surcharge) {
+                    foreach((array)($ShipmentRateDetail->ShipmentRateDetail->Surcharges) as $surcharge) {
                         if ($surcharge->SurchargeType == 'SATURDAY_DELIVERY') $saturday = true;
                     }
                 }
