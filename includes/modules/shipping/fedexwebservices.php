@@ -4,6 +4,7 @@
 // 2) (Temp solution) Resolve the bug which will not display FedEx intl priority by using RateService_v20.wsdl instead of RateService_v31.wsdl
 // 3) Resolve occasional warning, Invalid argument supplied for foreach()
 //
+<?php
 class fedexwebservices {
  var $code, $title, $description, $icon, $sort_order, $enabled, $tax_class, $fedex_key, $fedex_pwd, $fedex_act_num, $fedex_meter_num, $country, $total_weight;
 
@@ -179,10 +180,8 @@ class fedexwebservices {
     $this->_setInsuranceValue($totals);
     $request = $this->build_request_common_elements();
 
-   /*    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request using PHP ***');
-    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '31', 'Intermediate' => '0', 'Minor' => '0');*/
-    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request v20 using PHP ***');
-    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '20', 'Intermediate' => '0', 'Minor' => '0');
+    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request using PHP ***');
+    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '31', 'Intermediate' => '0', 'Minor' => '0');
     $request['ReturnTransitAndCommit'] = true;
     $request['RequestedShipment']['DropoffType'] = $this->_setDropOff(); // valid values REGULAR_PICKUP, REQUEST_COURIER, ...
     $request['RequestedShipment']['ShipTimestamp'] = date('c');
@@ -532,8 +531,7 @@ class fedexwebservices {
       //$request['Version'] = array('ServiceId' => 'crs', 'Major' => '7', 'Intermediate' => '0', 'Minor' => '0');
       //$path_to_wsdl = DIR_WS_INCLUDES . "wsdl/RateService_v7_test.wsdl";
     //} else {
-   // $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v31.wsdl';
-    $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v20.wsdl';
+    $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v31.wsdl';
     //}
     ini_set("soap.wsdl_cache_enabled", "0");
     //IF SOAP COMPILED WITH PEAR UNCOMMENT BELOW
@@ -773,8 +771,7 @@ class fedexwebservices {
               $saturday = false;
               if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_SATURDAY == 'true') {
                 foreach($rateReply->RatedShipmentDetails as $ShipmentRateDetail) {
-               //     foreach($ShipmentRateDetail->ShipmentRateDetail->Surcharges as $surcharge) {
-                foreach((array)($ShipmentRateDetail->ShipmentRateDetail->Surcharges) as $surcharge) {
+                    foreach($ShipmentRateDetail->ShipmentRateDetail->Surcharges as $surcharge) {
                         if ($surcharge->SurchargeType == 'SATURDAY_DELIVERY') $saturday = true;
                     }
                 }
