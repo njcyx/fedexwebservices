@@ -1,4 +1,4 @@
-Issue resolved. Not this plug-in is working now. 
+Issue resolved. Now this plug-in is working now (latest version)
 
 # FedEx Web Service for Zen Cart Mod
 
