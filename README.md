@@ -19,3 +19,5 @@ https://www.zen-cart.com/showthread.php?229127-upgrade-to-1-5-8-fedex-webservice
 Only one files are changed vs the files from Numinix
 
 includes/languages/english/modules/shipping/lang.fedexwebservices.php
+
+If unable to fix the warning, add "error_reporting(0);" to the top line.
