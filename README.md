@@ -1,4 +1,6 @@
-Issue resolved. Now this plug-in is working now (latest version)
+Update: this plug-in outdated. Please check the follow new plug-in (REST API).
+
+https://www.zen-cart.com/showthread.php?229562-FedEx-Shipping-using-REST-API
 
 # FedEx Web Service for Zen Cart Mod
 
