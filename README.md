@@ -7,7 +7,7 @@ https://www.zen-cart.com/showthread.php?229562-FedEx-Shipping-using-REST-API
 
 Note: FedEx doesn't provide new production keys (meter numbers). For new users, please check the REST API plug-in above. This mod is only for old users. 
 
-This module is based on the Numinix FedEx Shipping Module, v1.9.0 with some modifications to support Zen Cart 1.5.8 and PHP 8.0. PHP 8.1 is not tested so probably it still works. 
+This module is based on the Numinix FedEx Shipping Module, v1.9.1 with some modifications to support Zen Cart 1.5.8 and PHP 8.0. PHP 8.1 is not tested so probably it still works. 
 
 Original plug-in download Link: https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
 
