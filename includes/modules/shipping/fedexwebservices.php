@@ -1,9 +1,9 @@
 <?php
-// Modified based on Numinix v1.9.0 https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
+// Modified based on Numinix v1.9.1 https://www.numinix.com/zen-cart-plugins-modules-shipping-c-179_250_373_163/fedex-web-services-shipping
 // Mode log 1)Resolve the warning error caused by php 8.0 or higher 
 // 2) (Temp solution) Resolve the bug which will not display FedEx intl priority by using RateService_v20.wsdl instead of RateService_v31.wsdl
 // 3) Resolve occasional warning, Invalid argument supplied for foreach()
-//
+// Version 1.9.1A. Bug fixes. Enabled International Connect Plus. Please remove the old plug-in then install this new version 
 class fedexwebservices {
  var $code, $title, $description, $icon, $sort_order, $enabled, $tax_class, $fedex_key, $fedex_pwd, $fedex_act_num, $fedex_meter_num, $country, $total_weight;
 
@@ -40,7 +40,7 @@ class fedexwebservices {
     if (defined("SHIPPING_ORIGIN_COUNTRY")) {
       if ((int)SHIPPING_ORIGIN_COUNTRY > 0) {
         $countries_array = zen_get_countries((int)SHIPPING_ORIGIN_COUNTRY, true);
-        $this->country = $countries_array['countries_iso_code_2'];
+        $this->country = $countries_array['countries_iso_code_2'] ?? null;
         if(!strlen($this->country) > 0) { //when country failed to be retrieved, likely because running from admin.
           $this->country = $this->country_iso('', (int)SHIPPING_ORIGIN_COUNTRY);
         }
@@ -54,10 +54,10 @@ class fedexwebservices {
       $check_flag = false;
       $check = $db->Execute("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_SHIPPING_FEDEX_WEB_SERVICES_ZONE . "' and zone_country_id = '" . $order->delivery['country']['id'] . "' order by zone_id");
       while (!$check->EOF) {
-        if ($check->fields['zone_id'] < 1) {
+        if (intval($check->fields['zone_id']) < 1) {
           $check_flag = true;
           break;
-        } elseif ($check->fields['zone_id'] == $order->delivery['zone_id']) {
+        } elseif (intval($check->fields['zone_id']) == intval($order->delivery['zone_id'])) {
           $check_flag = true;
           break;
         }
@@ -117,12 +117,15 @@ class fedexwebservices {
 
     $this->types = array();
     if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_PRIORITY == 'true') {
-      $this->types['INTERNATIONAL_PRIORITY'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_INT_EXPRESS_HANDLING_FEE);
+      $this->types['FEDEX_INTERNATIONAL_PRIORITY'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_INT_EXPRESS_HANDLING_FEE);
       $this->types['EUROPE_FIRST_INTERNATIONAL_PRIORITY'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_INT_EXPRESS_HANDLING_FEE);
     }
     if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_ECONOMY == 'true') {
       $this->types['INTERNATIONAL_ECONOMY'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_INT_EXPRESS_HANDLING_FEE);
     }
+    if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_CONNECT_PLUS == 'true') {
+      $this->types['FEDEX_INTERNATIONAL_CONNECT_PLUS'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_INT_EXPRESS_HANDLING_FEE);
+    } 
     if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_STANDARD_OVERNIGHT == 'true') {
       $this->types['STANDARD_OVERNIGHT'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_EXPRESS_HANDLING_FEE);
     }
@@ -179,10 +182,9 @@ class fedexwebservices {
     $this->_setInsuranceValue($totals);
     $request = $this->build_request_common_elements();
 
-   /*  $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request using PHP ***');
-    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '31', 'Intermediate' => '0', 'Minor' => '0'); */
-    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request v20 using PHP ***');
-    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '20', 'Intermediate' => '0', 'Minor' => '0');
+    $request['TransactionDetail'] = array('CustomerTransactionId' => ' *** Rate Request using PHP ***');
+    $request['Version'] = array('ServiceId' => 'crs', 'Major' => '31', 'Intermediate' => '0', 'Minor' => '0'); 
+
     $request['ReturnTransitAndCommit'] = true;
     $request['RequestedShipment']['DropoffType'] = $this->_setDropOff(); // valid values REGULAR_PICKUP, REQUEST_COURIER, ...
     $request['RequestedShipment']['ShipTimestamp'] = date('c');
@@ -248,7 +250,7 @@ class fedexwebservices {
             'PostalCode' => $postcode,
             'City' => $city,
             'StateOrProvinceCode' => $state,
-            'CompanyName' => ($order->delivery['company'] ?? null),
+            'CompanyName' => $order->delivery['company'] ?? null,
             'CountryCode' => $country_id
           )
         )
@@ -532,14 +534,8 @@ class fedexwebservices {
     global $db, $shipping_weight, $shipping_num_boxes, $cart, $order, $all_products_ship_free;
     require_once(DIR_WS_INCLUDES . 'library/fedex-common.php5');
 
+    $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v31.wsdl';
 
-    //if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_SERVER == 'test') {
-      //$request['Version'] = array('ServiceId' => 'crs', 'Major' => '7', 'Intermediate' => '0', 'Minor' => '0');
-      //$path_to_wsdl = DIR_WS_INCLUDES . "wsdl/RateService_v7_test.wsdl";
-    //} else {
-  //  $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v31.wsdl';
-    $path_to_wsdl = DIR_WS_MODULES . 'shipping/fedexwebservices/wsdl/RateService_v20.wsdl';
-    //}
     ini_set("soap.wsdl_cache_enabled", "0");
     //IF SOAP COMPILED WITH PEAR UNCOMMENT BELOW
     //require_once('SOAP/Client.php');
@@ -698,8 +694,8 @@ class fedexwebservices {
               }
             }
             if ($showAccountRates) {
-              $cost = $rateReply->RatedShipmentDetails[0]->ShipmentRateDetail->TotalNetCharge->Amount;
-              $cost = (float)round(preg_replace('/[^0-9.]/', '',  $cost), 2);
+              $cost = reset($rateReply->RatedShipmentDetails)->ShipmentRateDetail->TotalNetCharge->Amount;
+              $cost = (float)round(preg_replace('/[^0-9.]/', '',  $cost), 2);  
             }
             $transitTime = '';
             if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_TRANSIT_TIME == 'true' && in_array($rateReply->ServiceType, array('GROUND_HOME_DELIVERY', 'FEDEX_GROUND', 'INTERNATIONAL_GROUND'))) {
@@ -807,7 +803,7 @@ class fedexwebservices {
                 $country_id = $this->country_iso($order->delivery['country']);
             }
 
-          $quotes['tax'] = zen_get_tax_rate($this->tax_class, $country_id, $order->delivery['zone_id']);
+          $quotes['tax'] = zen_get_tax_rate($this->tax_class, $country_id, intval($order->delivery['zone_id']));
         }
       } else {
         $message = 'Error in processing transaction.<br /><br />';
@@ -1032,6 +1028,7 @@ class fedexwebservices {
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable 2 Day', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_2DAY', 'true', 'Enable FedEx Express 2 Day', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable International Priority', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_PRIORITY', 'true', 'Enable FedEx Express International Priority', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable International Economy', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_ECONOMY', 'true', 'Enable FedEx Express International Economy', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Intl Connect Plus', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_CONNECT_PLUS', 'true', 'Enable FedEx Express Intl Connect Plus', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Ground', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_GROUND', 'true', 'Enable FedEx Ground', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable International Ground', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_GROUND', 'true', 'Enable FedEx International Ground', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Freight', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_FREIGHT', 'true', 'Enable FedEx Freight', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
@@ -1088,6 +1085,7 @@ class fedexwebservices {
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_2DAY',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_PRIORITY',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_ECONOMY',
+                 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_CONNECT_PLUS',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_GROUND',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_FREIGHT',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_GROUND',
