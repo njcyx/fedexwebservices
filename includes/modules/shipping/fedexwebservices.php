@@ -5,7 +5,28 @@
 // 3) Resolve occasional warning, Invalid argument supplied for foreach()
 // Version 1.9.1A. Bug fixes. Enabled International Connect Plus. Please remove the old plug-in then install this new version 
 class fedexwebservices {
- var $code, $title, $description, $icon, $sort_order, $enabled, $tax_class, $fedex_key, $fedex_pwd, $fedex_act_num, $fedex_meter_num, $country, $total_weight;
+ public
+    $code, 
+    $title,
+    $description,
+    $icon,
+    $enabled,
+    $tax_class,
+    $sort_order,
+    $quotes;
+
+protected
+    $fedex_key,
+    $fedex_pwd,
+    $fedex_act_num,
+    $fedex_meter_num,
+    $country,
+    $fedex_shipping_num_boxes,
+    $fedex_shipping_weight,
+    $insurance,
+    $_check,
+    $version,
+    $total_weight;
 
 //Class Constructor
   function __construct() {
@@ -21,7 +42,10 @@ class fedexwebservices {
     } else {
      $this->description      = MODULE_SHIPPING_FEDEX_WEB_SERVICES_TEXT_DESCRIPTION_SOAP;
      }
-    $this->sort_order       = MODULE_SHIPPING_FEDEX_WEB_SERVICES_SORT_ORDER;
+    $this->sort_order = (defined('MODULE_SHIPPING_FEDEX_WEB_SERVICES_SORT_ORDER')) ? (int)MODULE_SHIPPING_FEDEX_WEB_SERVICES_SORT_ORDER: null;
+    if ($this->sort_order === null) {
+          return false;
+    }
     //$this->icon = DIR_WS_IMAGES . 'fedex-images/fedex.gif';
     $this->icon = '';
 
@@ -645,8 +669,8 @@ class fedexwebservices {
       */
       if( MODULE_SHIPPING_FEDEX_WEB_SERVICES_DEBUG == 'true' ){
         $log_time_stamp = microtime();
-        error_log('['. strftime("%Y-%m-%d %H:%M:%S") .'] '. var_export($request, true), 3, DIR_FS_LOGS . '/fedexwebservices-requests-' . $log_time_stamp . '.log');
-        error_log('['. strftime("%Y-%m-%d %H:%M:%S") .'] '. var_export($response, true), 3, DIR_FS_LOGS . '/fedexwebservices-responses-' . $log_time_stamp . '.log');
+        error_log('['. date('Ymd-His') .'] '. var_export($request, true), 3, DIR_FS_LOGS . '/fedexwebservices-requests-' . $log_time_stamp . '.log');
+        error_log('['. date('Ymd-His') .'] '. var_export($response, true), 3, DIR_FS_LOGS . '/fedexwebservices-responses-' . $log_time_stamp . '.log');
       }
 
       $RateReplyDetails = $response->RateReplyDetails ?? null;
