@@ -170,6 +170,9 @@ protected
     if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_GROUND == 'true') {
       $this->types['INTERNATIONAL_GROUND'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_INT_HANDLING_FEE);
     }
+    if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_SMART_POST == 'true') {
+      $this->types['SMART_POST'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_HANDLING_FEE);
+    }
     if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_EXPRESS_SAVER == 'true') {
       $this->types['FEDEX_EXPRESS_SAVER'] = array('icon' => '', 'handling_fee' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_EXPRESS_HANDLING_FEE);
     }
@@ -220,6 +223,11 @@ protected
         $ship  =  date('c', mktime(0, 0, 0, date("m"), date("d")+1, date("Y")));
         $request['RequestedShipment']['ShipTimestamp'] = $ship;
       }
+    }
+    if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_SMART_POST == 'true') {
+    $request['RequestedShipment']['SmartPostDetail'] = array( 
+        'Indicia' => 'PARCEL_SELECT', 
+        'HubId' => 5150); //FedEx smartpost hub ID. Please update this number!
     }
     // if we do not allow weekend pickups, then we need to run the following code
     if (MODULE_SHIPPING_FEDEX_WEB_SERVICES_SATURDAY_PICKUP != 'true') {
@@ -384,10 +392,14 @@ protected
         );
         if (isset($packed_box['length']) && isset($packed_box['width']) && isset($packed_box['height'])) {
           $package['Dimensions'] = array(
-            'Length' => ($packed_box['length'] >= 1 ? $packed_box['length'] : 1),
-            'Width' => ($packed_box['width'] >= 1 ? $packed_box['width'] : 1),
+         //   'Length' => ($packed_box['length'] >= 1 ? $packed_box['length'] : 1),
+          //  'Width' => ($packed_box['width'] >= 1 ? $packed_box['width'] : 1),
+          //  'Height' => ($packed_box['height'] >= 1 ? $packed_box['height'] : 1),
+          // 'Units' => (MODULE_SHIPPING_FEDEX_WEB_SERVICES_WEIGHT == 'LB' ? 'IN' : 'CM')
+            'Length' => ($packed_box['length'] >= 6 ? $packed_box['length'] : 6),
+            'Width' => ($packed_box['width'] >= 4 ? $packed_box['width'] : 4),
             'Height' => ($packed_box['height'] >= 1 ? $packed_box['height'] : 1),
-            'Units' => (MODULE_SHIPPING_FEDEX_WEB_SERVICES_WEIGHT == 'LB' ? 'IN' : 'CM')
+            'Units' => (MODULE_SHIPPING_FEDEX_WEB_SERVICES_WEIGHT == 'LB' ? 'IN' : 'CM') //Change minimum pkg size to 6x4x1" for smartpost. 
           );
         }
         $packages[] = $package;
@@ -515,6 +527,7 @@ protected
               );
         }
         for ($i=0; $i<$this->fedex_shipping_num_boxes; $i++) {
+          if ($this->fedex_shipping_weight < 1) $this->fedex_shipping_weight = 1.0; //change minimum weight to 1lb (smartpost requirement)
           $request['RequestedShipment']['RequestedPackageLineItems'][] = array('Weight' => array('Value' => $this->fedex_shipping_weight,
                                                                                                  'Units' => MODULE_SHIPPING_FEDEX_WEB_SERVICES_WEIGHT),
                                                                                'GroupPackageCount' => 1,
@@ -808,12 +821,24 @@ protected
               }
 
               if ($new_cost < 0) $new_cost = 0;
+
+$skip = false; 
+if(in_array($rateReply->ServiceType, array('SMART_POST')))
+{
+  $quote_title = str_replace('Smart Post', 'Ground Economy', $quote_title);
+  if ($_SESSION['cart']->show_weight() > 70) $skip = true; //disable ground economy when over 70lb
+}
+
+      if ($skip) {} 
+          else {       
+             
               // bof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
               $methods[] = array('id' => str_replace('_', '', ($saturday) ? $rateReply->ServiceType.'_SATURDAY_DELIVERY' : $rateReply->ServiceType),
                                  'title' => $quote_title . ($saturday ? ' (' . MODULE_SHIPPING_FEDEX_WEB_SERVICES_TEXT_SATURDAY . ')' : ''),
               // eof modified for BPL-364 : Change code for FedEx 2 Day Saturday Delivery in FedEx Web Services Shipping
                                  'cost' => $new_cost);
               // eof modified for AKS-917 : Show accurate ETA with shipping quotes
+              }
             }
           }
         }
@@ -1054,6 +1079,7 @@ protected
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable International Economy', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_ECONOMY', 'true', 'Enable FedEx Express International Economy', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Intl Connect Plus', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_CONNECT_PLUS', 'true', 'Enable FedEx Express Intl Connect Plus', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Ground', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_GROUND', 'true', 'Enable FedEx Ground', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
+    $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Ground Economy', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_SMART_POST', 'true', 'Enable Ground Economy', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())"); 
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable International Ground', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_GROUND', 'true', 'Enable FedEx International Ground', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Freight', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_FREIGHT', 'true', 'Enable FedEx Freight', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
     $db->Execute("insert into " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) values ('Enable Saturday Delivery', 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_SATURDAY', 'false', 'Enable Saturday Delivery', '6', '10', 'zen_cfg_select_option(array(\'true\', \'false\'), ', now())");
@@ -1111,6 +1137,7 @@ protected
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_ECONOMY',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_CONNECT_PLUS',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_GROUND',
+                 'MODULE_SHIPPING_FEDEX_WEB_SERVICES_SMART_POST',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_FREIGHT',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_INTERNATIONAL_GROUND',
                  'MODULE_SHIPPING_FEDEX_WEB_SERVICES_SATURDAY',
