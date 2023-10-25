@@ -731,7 +731,13 @@ protected
               }
             }
             if ($showAccountRates) {
+              //$cost = reset($rateReply->RatedShipmentDetails)->ShipmentRateDetail->TotalNetCharge->Amount;
+
+          if (is_object($rateReply->RatedShipmentDetails)) {
+              $cost = $rateReply->RatedShipmentDetails->ShipmentRateDetail->TotalNetCharge->Amount;
+          } else {
               $cost = reset($rateReply->RatedShipmentDetails)->ShipmentRateDetail->TotalNetCharge->Amount;
+          }
               $cost = (float)round(preg_replace('/[^0-9.]/', '',  $cost), 2);  
             }
             $transitTime = '';
