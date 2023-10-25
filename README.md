@@ -16,14 +16,4 @@ https://www.zen-cart.com/showthread.php?229127-upgrade-to-1-5-8-fedex-webservice
 
 If unable to fix the warning, add "error_reporting(0);" to the top line.
 
-**Known bug:**
-Sometimes I will receive the follow warning. Not sure how to fix. 
-
-PHP Fatal error: Uncaught Error: Cannot use object of type stdClass as array in /public_html/includes/modules/shipping/fedexwebservices.php
-
-Affected codes are the following:
-
-if ($showAccountRates) {
-$cost = $rateReply->RatedShipmentDetails[0]->ShipmentRateDetail->TotalNetCharge->Amount;
-$cost = (float)round(preg_replace('/[^0-9.]/', '', $cost), 2);
-}
+FedEx ground economy/smartpost is not supported!
