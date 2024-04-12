@@ -5,8 +5,11 @@ https://www.fedex.com/en-us/developer/web-services.html
 Caution: FedEx Web Services Tracking, Address Validation, and Validate Postal Codes WSDLS will be retired on May 15, 2024. The SOAP based FedEx Web Services is in development containment and has been replaced with FedEx RESTful APIs. To learn more and upgrade your integration from Web Services to FedEx APIs, please visit the FedEx Developer Portal.
 
 **New Choice: **FedEx plug-in based on REST API: 
+
 https://www.zen-cart.com/downloads.php?do=file&id=2375
+
 Discussion thread: 
+
 https://www.zen-cart.com/showthread.php?229562-FedEx-Shipping-using-REST-API
 
 # FedEx Web Service for Zen Cart Mod
