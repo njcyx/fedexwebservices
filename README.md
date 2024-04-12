@@ -9,7 +9,6 @@ https://www.zen-cart.com/downloads.php?do=file&id=2375
 Discussion thread: 
 https://www.zen-cart.com/showthread.php?229562-FedEx-Shipping-using-REST-API
 
-========================
 # FedEx Web Service for Zen Cart Mod
 
 (Under development, for personal purposes only)
